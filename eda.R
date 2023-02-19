@@ -1,6 +1,10 @@
 library(tidyverse)
 library(magrittr)
 library(janitor)
+library(jsonlite)
+
+
+
 df <- read_csv("data/education.csv") |>
   select(Year, contains("Total"), Education) |>
   rename_with(~str_remove(., 'Total')) |>
