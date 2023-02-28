@@ -5,14 +5,17 @@ library(dplyr)
 library(plotly)
 
 # read in data 
-df <- read.csv("data/cereal_2.csv") |> select(-Manufacturer)
+df <- read.csv("data/cereal.csv") |> select(-Manufacturer)
 nutrient_dense <- c( "Carbs", "Fiber",  "Potassium","Protein", "Vitamins")
 
 
 ui <- fluidPage(
+
+  # header
   
-  fluidRow(style="padding:40px; background: #03bf7b; color: #ffffff",
-    h1("Cereal Selector.. Aka, Adulting is Hard :( ", align="center")
+  fluidRow(style="padding:40px; background: #03bf7b; color: #ffffff; text-align:center",
+             icon("bowl-rice", "fa-2xl", lib = "font-awesome"),
+             h1("Adult Cereal Selector")
   ), # end fluid row
   
   fluidRow(style="padding:40px; background: #f2f2f2",
@@ -24,13 +27,13 @@ ui <- fluidPage(
   
   # create side panel with dropdown menu
   fluidRow(style="padding:40px; ",
-    column(3,radioButtons(inputId="bar_var", #references the input to server
-                         label = h3("Select Variable"), # text that appears on UI
-                         choices=nutrient_dense |> sort(),
-                         selected="Protein")),
-    # plot bar chart
-    column(9,plotOutput("bar_plot"))
-    ),# end fluidRow
+           column(3,radioButtons(inputId="bar_var", #references the input to server
+                                 label = h3("Select Variable"), # text that appears on UI
+                                 choices=nutrient_dense |> sort(),
+                                 selected="Protein")),
+           # plot bar chart
+           column(9,plotOutput("bar_plot"))
+  ),# end fluidRow
   
   # Data table section ----------------------------------------------------
   
@@ -43,21 +46,25 @@ ui <- fluidPage(
   # create side panel with radio buttons
   fluidRow(style="padding:40px; background: #f2f2f2",
            column(3,div(selectInput(inputId="xaxis", #references the input to server
-                                label = h3("Select X Variable"), # text that appears on UI
-                                choices=colnames(df)[3:7] |> sort(),
-                                selected="Calories"),
+                                    label = h3("Select X Variable"), # text that appears on UI
+                                    choices=colnames(df)[3:7] |> sort(),
+                                    selected="Calories"),
                         selectInput(inputId="yaxis", #references the input to server
                                     label = h3("Select Y Variable"), # text that appears on UI
                                     choices=colnames(df)[3:11] |> sort(),
                                     selected="Sugars")
-                       ) #end div
-                  ), # end column
+           ) #end div
+           ), # end column
            # plot bar chart
            column(9,plotlyOutput("scatter_plot"))
-  )# end fluidRow
+  ),# end fluidRow
   
-  
+  fluidRow(style="padding:40px; background: #03bf7b; color: #ffffff; text-align:center",
+           h3("Looks like your best cereal choice is", textOutput("cereal"))
+  ) # end fluid row
 
+  
+  
   
   
 ) # end UI
@@ -69,22 +76,26 @@ server <- function(input, output, session) {
   summary <- df |>
     summarise_if(is.numeric, median, na.rm = TRUE)
   
-  nutrient_df <- df |> select(Name, all_of(nutrient_dense))
+  # create reactive dataframe subset
+  df_sub <- reactive({
+    df  |> arrange(input$bar_var) |> head(10)
+  })
   
   # render barchart
   output$bar_plot <- renderPlot({
-    ggplot(df |> arrange(desc(.data[[input$bar_var]])) |> head(6),
+    ggplot(df_sub(),
            aes(y=.data[[input$bar_var]], 
                x=Name)) + 
       geom_bar(stat="identity", fill = "#0add8c") +
       geom_vline(xintercept = summary[[input$bar_var]], linetype="dotted", color = "#fe788a", size=1) +
-      theme(axis.title.y=element_blank())
+      theme(axis.title.y=element_blank()) +
+      scale_x_discrete(labels=function(x){gsub(" ", "\n", df_sub()$Name)})
   })
-
+  
   
   # render table
   output$table <- renderDT(
-    df  |> arrange(input$bar_var) |> head(6), options=list( info = FALSE, paging = F, searching = F), rownames = F
+    df_sub(), options=list( info = FALSE, paging = T, searching = F, pageLength = 5), rownames = F
   )
   
   
@@ -95,13 +106,23 @@ server <- function(input, output, session) {
             mode= "markers",
             hovertemplate = paste0(
               df$Name, "<br>", input$xaxis, ": %{x}<br>", input$yaxis, ": %{y}<extra></extra>")) |>
-    layout(
-      xaxis=list(title = input$xaxis),
-      yaxis=list(title = input$yaxis)
-    )
+      layout(
+        xaxis=list(title = input$xaxis),
+        yaxis=list(title = input$yaxis)
+      )
     
   })
-
+  
+  # record click event to select cereal name
+  selected_name <- reactive({
+    df[(df[input$xaxis]== event_data("plotly_click")$x) & (df[input$yaxis]== event_data("plotly_click")$y)][1]
+  })
+  
+  output$cereal <- renderText({
+    req(event_data("plotly_click")$x)
+    selected_name()
+    })
+  
   
 }
 

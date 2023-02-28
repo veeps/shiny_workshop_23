@@ -1,0 +1,309 @@
+
+## Intro.R example
+ ☐ Add Render text
+ output$math <- renderText({5*3})
+ ☐ Add Textoutput
+textOutput(outputId = "math")
+ ☐ Talk about how this is a string
+
+ # Exercise: 
+ ☐ Add shiny widget to intro.R
+
+ ------ BACK TO SLIDES --------
+ ☐ Demo final dashboard
+ ☐ Talk about file structure - final for solutions
+
+ ------------ CODE -------------
+
+# command + D to complete
+ ☐ Read in dataframe in eda.R file
+ ☐ Create top 10 by protein descending
+ df |> arrange(desc(Protein)) |> head(6)
+
+ #### Create bbar plot
+ ☐ Fill in ggplot code
+ggplot(df |> arrange(desc(Protein)) |> head(10),
+         aes(y=Protein, 
+             x=Name)) + 
+    geom_bar(stat="identity", fill = "#0add8c") +
+    theme(axis.title.y=element_blank())
+ ☐ Render bar chart in Shiny app
+ fluidRow(plotOutput("bar_plot"))
+
+  output$bar_plot <- renderPlot({
+    ggplot(df |> arrange(desc(Protein)) |> head(10),
+           aes(y=Protein, 
+               x=Name)) + 
+      geom_bar(stat="identity", fill = "#0add8c") +
+      theme(axis.title.y=element_blank())
+  })
+
+   # create a summary table
+  summary <- df %>%
+    group_by(start_station_name) %>%
+     summarise(
+    total_rides = n(),
+    avg_duration= as.integer(mean(tripduration)),
+    avg_age = as.integer(mean(age))
+  ) %>%
+  arrange(-total_rides) %>%
+  head(10)
+ ☐ Open app.R file 
+ ☐ Update server section
+   renderDT(summary, )
+ ☐ Update UI section
+     fluidRow(DTOutput("summary_dt"))
+ ☐ Show DataTable options
+ output$summary_dt <- renderDT(summary, options=list( info = FALSE, paging = F, searching = F))
+
+
+
+ ☐ Go back to slides
+ ☐ Create dropdown code Text before equal sign, and text after equal sign
+ #create side panel with dropdown menu
+ selectInput(inputId="bar_yaxis", #references the input to server
+             label = h3("Select Variable"), # text that appears on UI
+             choices=c("Avg Duration" = "avg_duration", "Avg Age"="avg_age", "Total Rides"= "total_rides")),
+
+ ☐ Show that the dropdown doesn't do anything. Because we have to tell Shiny what to do with the input
+ ☐ Add output text in server section
+ output$text <- renderText({input$bar_yaxis})
+ ☐ Scroll up to UI section
+ textOutput("text") # mention the commas!
+ ☐ Return to slides. Talk about subsetting data
+ ☐ Add input variable to ggplot
+  output$bar_plot <- renderPlot({
+    ggplot(summary,aes(y=summary[[input$bar_yaxis]], x=start_station_name , fill = start_station_name)) + geom_bar(stat="identity")
+  })
+ ☐ Add bar plot in UI
+    plotOutput("bar_plot"),
+ ☐ Talk about data masking!
+ .data[[input$bar_yaxis]]
+ # this way you don't have to repeat the df name all the time
+
+ ☐ Exercise - Update yaxis label! 
+ ☐ how do you create an interactive y label?
+ + ylab(input$bar_yaxis)
+
+
+# Note to self - how do you sort bar based on DT sorting
+------ BREAK ----------
+
+###### Create scatter plot
+ ☐ In EDA.R file, create a scatter plot with ggplot
+ ggplot(df, aes(x=age, y = distance,  color = age)) + geom_point()
+ ☐ Go into Plotly examples - show plotly site + my map example
+ ☐ Create scatter plot with plotly
+ plot_ly(data = df, x= ~age, y = ~distance,
+            type = "scatter")
+ ☐ Back to app.R, undo comment for output$scatter RUN AFTER TYPE = SCATTER
+ output$scatter <- renderPlotly({
+  plot_ly(data = df, x = ~age, y = ~distance,
+          type="scatter",
+          marker=list(size=5),
+          mode = "markers", 
+          text = ~paste("Age:", age, "Distance:", round(distance,2), "m"))
+}) # m is meters
+ ☐ Add it to UI section
+ plotly::plotlyOutput("scatter")
+
+------ LUNCH BREAK ----------
+
+
+## Deploy shinyapps
+ ☐ Sign up for account
+ ☐ Install rsconnect
+ ☐ Copy token code
+ ☐ Deploy app name
+
+------ DESIGN BBREAK --------
+
+## Conditional color
+ ☐ Open eda.R file
+ ☐ Create an IF ELSE statement for fill
+ # create a bar plot
+ggplot(summary, aes(x=start_station_name, y = total_rides, fill = ifelse(total_rides > mean(total_rides), T, F))) + 
+  geom_bar(stat="identity", show.legend=F) + 
+  ggtitle("Total Rides by Station") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_discrete(labels=function(x){gsub(" ", "\n", summary$start_station_name)})
+
+ ☐ Demo how to select color
+ # Screenshot App
+ https://imagecolorpicker.com/en/
+
+ ☐ Add custom color
+   # create a bar plot
+ggplot(summary, aes(x=start_station_name, y = total_rides, fill = ifelse(total_rides > mean(total_rides), T, F))) + 
+  geom_bar(stat="identity", show.legend=F) + scale_fill_manual(values = c('#828282', '#2785bc')) + 
+  ggtitle("Total Rides by Station") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_discrete(labels=function(x){gsub(" ", "\n", summary$start_station_name)})
+
+
+## UI Frameworks
+ ☐ Back to slides, go over UI frameworks and fluid page
+ ☐ Back to app.R, play with different UI frameworks
+ ## DON'T CODE! I WILL JUST SHOW
+ ## for navbarPage example
+ navbarPage("Title",
+  
+ 
+  tabPanel("Plots"), tabPanel("Summary"), navbarMenu("More", tabPanel("About"), tabPanel("Contact Us")),
+  
+ 
+  tabPanel("Plots"), tabPanel("Summary"),
+
+ ☐ Back to slides. Talk about grid system
+ ☐ app.R make dropdown in same row as the graph
+     # create side panel with dropdown menu
+    fluidRow(
+      column(3,selectInput(inputId="bar_yaxis", #references the input to server
+                           label = h3("Select Variable"), # text that appears on UI
+                           choices=c("Avg Duration" = "avg_duration", "Avg Age"="avg_age", "Total Rides"= "total_rides"))
+      ),
+    # plot bar chart
+    column(9,plotOutput("bar_plot"))),
+    ☐ Exercise!!! Create h3 tag in same row as scatter
+     # exercise - add text to the side of scatter plot
+    fluidRow(
+      column(3,h3("Looking at correlation")),
+      column(9, plotly::plotlyOutput("scatter"))
+    ),
+    ☐ Back to slides. Go over making a row
+    ☐ Live code! Add paragraph text in the same row
+    # exercise - add text to the side of scatter plot
+    fluidRow(
+      column(3,div(h3("Looking at correlation"), p("Here is where we can put some text!"))
+             ),
+      column(9, plotly::plotlyOutput("scatter"))
+    ),
+    ☐ Deploy to shiny!
+
+  --- BREAK ----
+
+     ☐ Back to slides! That was hard.. start on paper!
+     ☐ Exercise - sketch out the header layout
+     ☐ Open layout.R
+     ☐ Import tidyverse
+     ☐ Exercise - Create the rows and columns needed here first!
+     ☐ Paste in slack
+     Share your UI code for the framework of this layout
+     ☐ Start with just the first row. Add columns first
+     ui <- fluidPage(
+  fluidRow(
+    column(6),
+    column(2),
+    column(2),
+    column(2)
+  )
+)
+    ☐ Now add the h2, action button tags
+     fluidRow(
+    column(6, h2("CitiBike June 2020")),
+    column(2, actionButton("all", "All Users")),
+    column(2, actionButton("sub", "Subscribers")),
+    column(2, actionButton("non_sub", "Non-Subscribers"))
+    ☐ Run app!
+    ☐ Now do the second row. Add comma and fluid row!
+    fluidRow(
+    column(6),
+    column(6)
+    )
+    ☐ Now add div icon h3
+      fluidRow(
+    column(6,
+           div(
+             h1(),
+             h3()
+           )),
+    column(6,
+           div(
+             h1(),
+             h3()
+           ))
+  )
+  ☐ Now add elements
+  fluidRow(
+    column(6,
+           div(
+             h1("Filler text"),
+             h3("Total Rides")
+           )),
+    column(6,
+           div(
+             h1("Filler text"),
+             h3("Median Age")
+           ))
+  )
+  ☐ Add in style background color to first row 
+  # first argument in fluid row
+  style="background-color: #7cd8c9",
+  ☐ Center text for second row
+  style = "text-align: center",
+  ☐ Exercise - Can you make the background of the two columns?
+  style="background-color: #dedede",
+  ☐ Back to slides! Reminder of purple flow. From output to UI
+  ☐ Back to layout.R
+  ☐ Create render text variables for total
+  output$total <- renderText({nrow(df)})
+  ☐ Add into UI
+  textOutput("total")
+  ☐ Exercise! Create render text for median
+  output$avg_age <- renderText({median(df[["age"]])})
+  ☐ Add into UI
+  textOutput("avg_age")
+  ☐ Back to slides. Talk about creating reactive val 
+  ☐ to layout.R . Add observeEvent
+    observeEvent(input$all, {})
+  
+  observeEvent(input$sub, {})
+  
+  observeEvent(input$non_sub, {})
+  ☐ Show how the observeEvent doesn't do anything if you add the filter in there
+    observeEvent(input$all, {
+    df <- df
+  })
+  
+  observeEvent(input$sub, {
+    df <- df %>%
+      filter(usertype == "Subscriber")
+  })
+  
+  observeEvent(input$non_sub, {
+  })
+  ☐ Create new dataframes
+  sub_df <- df %>% filter(usertype == "Subscriber")
+  
+  non_sub_df <- df %>% filter(usertype == "Customer")
+  
+
+  ☐ Add in v$data into observeEvent
+  v$data <- df
+  v$data <- sub_df
+  v$data <- non_sub_df
+
+  ☐ Run app - nothing will run
+  ☐ add to renderText 
+  output$total <- renderText({nrow(v$data)})
+  
+  output$avg_age <- renderText({median(v$data[["age"]])})
+
+ ☐ Value only appears when button is clicked
+ ☐ Add in if statement
+   output$total <- renderText({if (is.null(v$data)) return(nrow(df))
+    nrow(v$data)})
+  
+  output$avg_age <- renderText({if (is.null(v$data)) return(median(df[["age"]]))
+    median(v$data[["age"]])})
+
+
+
+
+
+
+
+
+    
+
+      
