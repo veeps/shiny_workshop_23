@@ -88,7 +88,7 @@ server <- function(input, output, session) {
                x=Name)) + 
       geom_bar(stat="identity", fill = "#0add8c") +
       geom_vline(xintercept = summary[[input$bar_var]], linetype="dotted", color = "#fe788a", size=1) +
-      theme(axis.title.y=element_blank()) +
+      theme(axis.title.x=element_blank()) +
       scale_x_discrete(labels=function(x){gsub(" ", "\n", df_sub()$Name)})
   })
   

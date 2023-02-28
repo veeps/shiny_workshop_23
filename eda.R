@@ -15,5 +15,5 @@ df |> arrange(desc()) |> head(10)
 # render barchart
 ggplot() + 
     geom_bar(stat="identity", fill = "#0add8c") +
-    theme(axis.title.y=element_blank())
+    theme(axis.title.x=element_blank())
 

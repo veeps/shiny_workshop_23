@@ -49,7 +49,7 @@ server <- function(input, output, session) {
            aes(y=Protein, 
                x=Name)) + 
       geom_bar(stat="identity", fill = "#0add8c") +
-      theme(axis.title.y=element_blank())
+      theme(axis.title.x=element_blank())
   })
 
   # Data table section ----------------------------------------------------
