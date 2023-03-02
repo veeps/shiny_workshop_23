@@ -47,11 +47,11 @@ ui <- fluidPage(
   fluidRow(style="padding:40px; background: #f2f2f2",
            column(3,div(selectInput(inputId="xaxis", #references the input to server
                                     label = h3("Select X Variable"), # text that appears on UI
-                                    choices=colnames(df)[3:7] |> sort(),
+                                    choices=colnames(df)[2:10] |> sort(),
                                     selected="Calories"),
                         selectInput(inputId="yaxis", #references the input to server
                                     label = h3("Select Y Variable"), # text that appears on UI
-                                    choices=colnames(df)[3:11] |> sort(),
+                                    choices=colnames(df)[2:10] |> sort(),
                                     selected="Sugars")
            ) #end div
            ), # end column
@@ -78,7 +78,7 @@ server <- function(input, output, session) {
   
   # create reactive dataframe subset
   df_sub <- reactive({
-    df  |> arrange(input$bar_var) |> head(10)
+    df  |> arrange(desc(.data[[input$bar_var]])) |> head(10)
   })
   
   # render barchart
@@ -87,7 +87,7 @@ server <- function(input, output, session) {
            aes(y=.data[[input$bar_var]], 
                x=Name)) + 
       geom_bar(stat="identity", fill = "#0add8c") +
-      geom_vline(xintercept = summary[[input$bar_var]], linetype="dotted", color = "#fe788a", size=1) +
+      geom_vline(xintercept = summary[[input$bar_var]], linetype="dotted", color = "#fe788a", linewidth=1) +
       theme(axis.title.x=element_blank()) +
       scale_x_discrete(labels=function(x){gsub(" ", "\n", df_sub()$Name)})
   })

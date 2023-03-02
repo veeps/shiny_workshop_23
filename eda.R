@@ -17,3 +17,11 @@ ggplot() +
     geom_bar(stat="identity", fill = "#0add8c") +
     theme(axis.title.x=element_blank())
 
+
+# Scatterplot section -------------------------------------------------------
+
+# render scatterplot
+ggplot() + geom_point() 
+
+# create Plotly scatter
+plot_ly() 
