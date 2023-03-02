@@ -9,7 +9,7 @@ This workshop is designed as a one-day intro to Shiny workshop. Today we'll cove
 - Deploy to shinyapps.io
 
 ## Workshop format
-We will be walking through examples throughout the course. If you get lost following along the live coding sessions, you can see the "03_final.R" file for the full code.
+We will be walking through examples throughout the course. To follow along with the code, please clone or download the `workshop` branch of this repo. If you get lost during the live coding sessions, you can see the "03_final.R" file for the full code.
 
 We are going to work our way towards building [this](https://veeps.shinyapps.io/shiny_workshop_23).
 
